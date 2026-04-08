@@ -14,26 +14,48 @@ def lambda_handler(event, context):
         count = int(time.time() * 1000)
         
         user_id = body.get('userId', 0)
-        responses = userTable.get_item(
+        response = userTable.get_item(
             Key={'UserId': int(user_id)}
         )
-        if 'Item' not in responses:
+        if 'Item' not in response:
             print(f"Error: erm.......")
             return {
                 'statusCode': 400,
                 'body': json.dumps({'error': 'User does not exist'})
             }
         type = body.get('type')
-        amount_transfered = body.get('amountTransfered', 0)
+        amount_transfered = int(body.get('amountTransfered', 0))
         
         transTable.put_item(
             Item={
                 'TransactionNumber': int(count) + 1,
                 'UserId': int(user_id),
                 'Type': type,
-                'AmountTransfered': int(amount_transfered)
+                'AmountTransfered': amount_transfered
             }
         )
+        if (type == "Withdrawal"):
+            current_balance = response['Item']['Balance']
+            if current_balance < amount_transfered:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'error': 'Insufficient balance'})
+                }
+            # this is not working!
+            userTable.update_item(
+                Key={'UserId': int(user_id)},
+                UpdateExpression="SET Balance = Balance - :amt",
+                ExpressionAttributeValues={':amt': amount_transfered},
+                ReturnValues="UPDATED_NEW"
+            )
+        elif (type == "Deposit"):
+            userTable.update_item(
+                Key={'UserId': int(user_id)},
+                UpdateExpression="SET Balance = Balance + :amt",
+                ExpressionAttributeValues={':amt': amount_transfered},
+                ReturnValues="UPDATED_NEW"
+            )
+
         return {
             'statusCode': 200,
             'headers': {
