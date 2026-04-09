@@ -111,7 +111,7 @@ async function createTransaction(type) {
         if (result.id) {
             statusDiv.innerHTML = `<b style="color: green;">Success! Account ID: ${result.id}</b>`;
         } else {
-            statusDiv.innerHTML = `<b style="color: green;">Error! ${result.error}</b>`;
+            statusDiv.innerHTML = `<b style="color: green;">Denied ${result.error}</b>`;
         }
     } catch (error) {
         statusDiv.innerHTML = `<b style="color: red;">Error connecting to Bank Servers.</b>`;
