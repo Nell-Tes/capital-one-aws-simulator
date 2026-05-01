@@ -67,7 +67,7 @@
 
 <div class="card">
     <h2>Deposit or Withdraw!</h2>
-    <p>Enter details for a new transaction.</p>
+    <p>Enter details for a new transaction request (processed asynchronously).</p>
     
     <label>User ID</label>
     <input type="text" id="userId" placeholder="John Doe">
@@ -96,7 +96,7 @@ async function createTransaction(type) {
     }
 
     const statusDiv = document.getElementById('status');
-    statusDiv.innerText = `Processing ${userId}'s application...`;
+    statusDiv.innerText = `Queueing ${type.toLowerCase()} request for User ${userId}...`;
 
     const apiURL = "https://j7tffvgwf6.execute-api.us-east-1.amazonaws.com/default/CreateTransaction"; 
 
@@ -108,10 +108,10 @@ async function createTransaction(type) {
         });
 
         const result = await response.json();
-        if (result.id) {
-            statusDiv.innerHTML = `<b style="color: green;">Success! Account ID: ${result.id}</b>`;
+        if (response.ok && result.id) {
+            statusDiv.innerHTML = `<b style="color: green;">Queued successfully. User ID: ${result.id}, Transaction #: ${result.transactionNumber || 'pending'}</b>`;
         } else {
-            statusDiv.innerHTML = `<b style="color: green;">Denied ${result.error}</b>`;
+            statusDiv.innerHTML = `<b style="color: #a32424;">Denied: ${result.error || 'unknown error'}</b>`;
         }
     } catch (error) {
         statusDiv.innerHTML = `<b style="color: red;">Error connecting to Bank Servers.</b>`;
